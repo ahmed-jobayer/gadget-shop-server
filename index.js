@@ -8,8 +8,16 @@ const app = express();
 const port = process.env.PORT || 4000;
 
 // middleware
-app.use(cors());
+app.use(cors({
+    origin: 'http://localhost:5173',
+    optionsSuccessStatus: 200,
+}));
 app.use(express.json());
+
+// token varification
+const verifyJWT = (req, res, next) => {
+    co
+}
 
 // mongodb
 
@@ -33,13 +41,10 @@ const dbConnect = async () => {
 
         // get user 
 
-        app.get('/user', async ( req, res) => {
-            const email = req.body.email;
+        app.get('/user/:email', async ( req, res) => {
+            const email = req.params.email;
             const query = {email: email}
             const user = await userCollection.findOne(query)
-            if (!user) {
-                res.send({message: 'No user found'})
-            }
             res.send(user)
         })
 
@@ -57,6 +62,15 @@ const dbConnect = async () => {
             const result = await userCollection.insertOne(user)
             res.send(result)
         })
+
+        // add product
+
+        app.post('/add-products', async(req, res) => {
+            const product = req.body
+            const result = await productCollection.insertOne(product)
+            res.send(result)
+        })
+
 
     } catch (error) {
         console.log(error.name, error.message)
