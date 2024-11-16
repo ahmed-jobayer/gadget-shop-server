@@ -31,6 +31,18 @@ const dbConnect = async () => {
         client.connect();
         console.log("Database connected successfully")
 
+        // get user 
+
+        app.get('/user', async ( req, res) => {
+            const email = req.body.email;
+            const query = {email: email}
+            const user = await userCollection.findOne(query)
+            if (!user) {
+                res.send({message: 'No user found'})
+            }
+            res.send(user)
+        })
+
         // insert user 
         
         app.post("/users", async(req, res) => {
