@@ -18,11 +18,11 @@ app.use(express.json());
 
 // token varification
 const verifyJWT = (req, res, next) => {
-  const authorizarion = req.header.authorizarion;
-  if (!authorizarion) {
+  const authorization = req.headers.authorization;
+  if (!authorization) {
     return res.send({ message: "No TOken" });
   }
-  const token = authorizarion.split(" ")[1];
+  const token = authorization.split(" ")[1];
   jwt.verify(token, process.env.ACCESS_KEY_TOKEN, (err, decoded) => {
     if (err) {
       return res.send({ message: "Invalid Token" });
@@ -93,6 +93,38 @@ const dbConnect = async () => {
       const product = req.body;
       const result = await productCollection.insertOne(product);
       res.send(result);
+    });
+
+    // get product
+
+    app.get("/all-ptoducts", async (req, res) => {
+      // name searching
+      // sort by price
+      // filter by category
+      // filter by brand
+
+      const { title, sort, category, brand } = req.query();
+
+      const query = {};
+
+      if (title) {
+        query.title = { $regex: title, $options: "i" };
+      }
+
+      if (category) {
+        query.category = { $regex: title, $options: "i" };
+      }
+
+      if (brand) {
+        query.brand = brand;
+      }
+
+      const sortOptions = sort === "asc" ? 1 : -1;
+
+      const products = await productCollection.find(query).sort({price: sortOptions}).toArray()
+
+      res.json(products)
+
     });
   } catch (error) {
     console.log(error.name, error.message);
