@@ -103,7 +103,7 @@ const dbConnect = async () => {
       // filter by category
       // filter by brand
 
-      const { title, sort, category, brand } = req.query;
+      const { title, sort, category, brand, page = 1, limit = 9 } = req.query;
 
       const query = {};
 
@@ -112,17 +112,22 @@ const dbConnect = async () => {
       }
 
       if (category) {
-        query.category = { $regex: title, $options: "i" };
+        query.category = { $regex: category, $options: "i" };
       }
 
       if (brand) {
         query.brand = brand;
       }
 
+      const pageNumber = Number(page);
+      const limitNumber = Number(limit);
+
       const sortOptions = sort === "asc" ? 1 : -1;
 
       const products = await productCollection
         .find(query)
+        .skip((pageNumber - 1) * limit)
+        .limit(limitNumber)
         .sort({ price: sortOptions })
         .toArray();
 
@@ -138,7 +143,7 @@ const dbConnect = async () => {
 
       const brands = [...new Set(productInfo.map((product) => product.brand))];
 
-      res.json({products, totalproducts, categories, brands});
+      res.json({ products, totalproducts, categories, brands });
     });
   } catch (error) {
     console.log(error.name, error.message);
