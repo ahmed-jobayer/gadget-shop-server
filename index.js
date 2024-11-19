@@ -60,7 +60,7 @@ const productCollection = client.db("gadgetShop").collection("products");
 
 const dbConnect = async () => {
   try {
-    client.connect();
+    await client.connect();
     console.log("Database connected successfully");
 
     // get user
@@ -97,13 +97,13 @@ const dbConnect = async () => {
 
     // get product
 
-    app.get("/all-ptoducts", async (req, res) => {
+    app.get("/all-products", async (req, res) => {
       // name searching
       // sort by price
       // filter by category
       // filter by brand
 
-      const { title, sort, category, brand } = req.query();
+      const { title, sort, category, brand } = req.query;
 
       const query = {};
 
@@ -121,10 +121,24 @@ const dbConnect = async () => {
 
       const sortOptions = sort === "asc" ? 1 : -1;
 
-      const products = await productCollection.find(query).sort({price: sortOptions}).toArray()
+      const products = await productCollection
+        .find(query)
+        .sort({ price: sortOptions })
+        .toArray();
 
-      res.json(products)
+      const totalproducts = await productCollection.countDocuments(query);
 
+      const productInfo = await productCollection
+        .find({}, { projection: { category: 1, brand: 1 } })
+        .toArray();
+
+      const categories = [
+        ...new Set(productInfo.map((product) => product.category)),
+      ];
+
+      const brands = [...new Set(productInfo.map((product) => product.brand))];
+
+      res.json({products, totalproducts, categories, brands});
     });
   } catch (error) {
     console.log(error.name, error.message);
